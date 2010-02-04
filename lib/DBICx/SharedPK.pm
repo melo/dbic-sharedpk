@@ -160,4 +160,9 @@ Copyright 2010 Pedro Melo
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
+
+=for coverage
+
+=head2 insert
+
 =cut
