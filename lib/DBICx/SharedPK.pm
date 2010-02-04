@@ -48,3 +48,116 @@ sub insert {
 }
 
 1;
+
+=encoding utf8
+
+
+=head1 NAME
+
+DBICx::SharedPK - Use the primary key of a shared source on other sources
+
+
+=head1 SYNOPSIS
+
+    ### Create your PK source
+    package My::Schema::Result::IDs;
+    
+    use base 'DBIx::Class';
+    
+    __PACKAGE__->load_namespaces('Core');
+    __PACKAGE__->table('my_ids');
+    
+    __PACKAGE__->add_columns(
+      shared_id => {
+        data_type         => 'integer',
+        is_nullable       => 0,
+        is_auto_increment => 1,
+      },
+
+      source => {
+        data_type   => 'varchar',
+        size        => 100,
+        is_nullable => 0,
+      },
+    );
+
+    __PACKAGE__->set_primary_key('shared_id');
+    
+    1;
+    
+    
+    ### Use on your sources
+    package My::Schema::Result::Users;
+    
+    use strict;
+    use warnings;
+    use base 'DBIx::Class';
+    
+    __PACKAGE__->load_components('+DBICx::SharedPK', 'Core');
+    __PACKAGE__->table('my_users');
+    
+    __PACKAGE__->add_columns(
+      user_id => {
+        data_type => 'integer',
+        is_nullable => 0,
+      },
+    );
+    
+    __PACKAGE__->set_shared_primary_key('My::Schema::Result::IDs' => 'user_id');
+    
+    1;
+
+
+=head1 DESCRIPTION
+
+Source C<My::Schema::Result::IDs> is used to generate IDs. Then you can
+use them on other sources automagically.
+
+
+=head1 METHODS
+
+=head2 set_shared_primary_key()
+
+Defines our primary key, get them from source.
+
+
+=head1 DIAGNOSTICS
+
+The following exceptions might be thrown:
+
+
+=over 4
+
+
+=item FATAL: set_shared_primary_key() requires a foreign class with a primary key
+
+The shared PK class lacks a primary key.
+
+
+=item FATAL: set_shared_primary_key() requires a foreign class with a singular primary key
+
+The shared PK class has a multiple column primary key. This module only
+supports single column primary keys.
+
+
+=back
+
+
+=head1 SEE ALSO
+
+L<DBIx::Class>
+
+
+=head1 AUTHOR
+
+Pedro Melo, C<< <melo@simplicidade.org> >>
+
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2010 Pedro Melo
+
+This library is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
