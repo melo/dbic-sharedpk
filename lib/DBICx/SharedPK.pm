@@ -6,7 +6,8 @@ use Carp qw( croak );
 use constant SHAREDPK_REL_NAME => '_shared_pk_rel';
 
 sub set_shared_primary_key {
-  my ($class, $foreign_class, $field) = @_;
+  my ($class, $foreign_class, $field, $rel_name) = @_;
+  $rel_name ||= SHAREDPK_REL_NAME;
 
   $class->set_primary_key($field);
   $class->ensure_class_loaded($foreign_class);
@@ -19,24 +20,29 @@ sub set_shared_primary_key {
     'FATAL: set_shared_primary_key() requires a foreign class with a singular primary key'
   ) if $too_many;
 
-  $class->belongs_to(SHAREDPK_REL_NAME, $foreign_class,
+  $class->belongs_to($rel_name, $foreign_class,
     {"foreign.$foreign_key" => "self.$field"},
   );
+
+  my $si = $class->source_info || {};
+  $si->{SHAREDPK_REL_NAME} = $rel_name;
+  $class->source_info($si);
 }
 
 sub insert {
   my ($self, @rest) = @_;
-  my $source = $self->result_source;
+  my $source   = $self->result_source;
+  my $rel_name = $source->source_info->{SHAREDPK_REL_NAME};
 
   my $meth = $self->next::can;
 
   return $source->schema->txn_do(
     sub {
-      if ($source->has_relationship(SHAREDPK_REL_NAME)) {
+      if ($source->has_relationship($rel_name)) {
         my ($key) = $self->primary_columns;
         if (!defined($self->get_column($key))) {
           my $frg_obj =
-            $self->create_related(SHAREDPK_REL_NAME,
+            $self->create_related($rel_name,
             {source => $source->source_name});
           $self->set_column($key => ($frg_obj->id)[0]);
         }

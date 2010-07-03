@@ -14,6 +14,6 @@ __PACKAGE__->add_columns(
   },
 );
 
-__PACKAGE__->set_shared_primary_key('My::Schema::Result::IDs' => 'user_id');
+__PACKAGE__->set_shared_primary_key('My::Schema::Result::IDs' => 'user_id', 'id_source');
 
 1;

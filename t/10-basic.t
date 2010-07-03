@@ -21,7 +21,7 @@ my $user1 = $schema->resultset('Users')->create({});
 ok($user1, 'Got a Users object');
 is($user1->user_id, 1, '... expected user_id');
 
-my $sk = $user1->_shared_pk_rel;
+my $sk = $user1->id_source;
 is($sk->shared_id, 1,       '... the same as the related shared key');
 is($sk->source,    'Users', '... and the expected source, Users');
 
